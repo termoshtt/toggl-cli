@@ -15,7 +15,7 @@ import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as T
 import qualified Data.Text.Lazy.Encoding as T
 import Control.Monad
-import Control.Lens
+import Control.Lens ((&), (^=), (?~), (^.))
 import GHC.Generics
 
 import Network.Wreq
@@ -35,11 +35,41 @@ data Task = Task
     , stop        :: Maybe T.Text
     , description :: Maybe T.Text
     , at          :: Maybe T.Text
+    , created_with:: Maybe T.Text
     , tags        :: Maybe T.Text
     } deriving (Show, Generic)
 
 instance FromJSON Task
-instance ToJSON Task
+instance ToJSON Task where
+  toJSON t = object $ catMaybes
+    [ ("id" .=) <$> API.id t
+    , ("wid" .=) <$> wid t
+    , ("pid" .=) <$> pid t
+    , ("guid" .=) <$> guid t
+    , ("duration" .=) <$> duration t
+    , ("start" .=) <$> start t
+    , ("stop" .=) <$> stop t
+    , ("description" .=) <$> description t
+    , ("at" .=) <$> API.at t
+    , ("tags" .=) <$> tags t
+    , ("created_with" .=) <$> created_with t
+    ]
+
+emptyTask = Task
+  { API.id      = Nothing
+  , wid         = Nothing
+  , pid         = Nothing
+  , guid        = Nothing
+  , duration    = Nothing
+  , billable    = Nothing
+  , duronly     = Nothing
+  , start       = Nothing
+  , stop        = Nothing
+  , description = Nothing
+  , API.at      = Nothing
+  , tags        = Nothing
+  , created_with = Nothing
+  }
 
 data Wrap1 = Wrap1
    { _data :: Task
@@ -52,6 +82,12 @@ instance FromJSON Wrap1 where
 parseResponse1 :: B.ByteString -> Maybe Task
 parseResponse1 str = _data <$> wrap where
   wrap = decode $ str :: Maybe Wrap1
+
+data TimeEntry = TimeEntry
+  { time_entry :: Task
+  } deriving (Show, Generic)
+
+instance ToJSON TimeEntry
 
 toggl_url :: String
 toggl_url = "https://www.toggl.com/api/v8/"
@@ -66,6 +102,13 @@ getCurrent = do
   opts <- getOption
   r <- getWith opts $ toggl_url ++ "time_entries/current"
   return $ parseResponse1 $ r ^. responseBody
+
+startTask :: B.ByteString -> IO (Maybe Task)
+startTask desc = do
+  let entry = TimeEntry { time_entry = emptyTask { description = Just $ T.decodeUtf8 desc , created_with = Just "toggl-cli" } }
+  opts <- getOption
+  r <- postWith opts (toggl_url ++ "time_entries/start") (toJSON entry)
+  return $ decode desc
 
 stopTask :: Task -> IO (Maybe Task)
 stopTask task = do
