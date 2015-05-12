@@ -1,9 +1,9 @@
 {-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
 
-import System.Console.CmdArgs
+import qualified Data.Text.Lazy as T
+import qualified Data.Text.Lazy.IO as T
 import System.Console.CmdArgs
 import System.Environment (getArgs, withArgs)
-import System.Exit
 import Data.Maybe
 import Control.Lens
 
@@ -40,13 +40,14 @@ main = do
     args <- getArgs
     opts <- (if null args then withArgs ["--help"] else id) $ cmdArgsRun myModes
     exec opts
- 
+
+printTask :: Maybe Task -> IO ()
+printTask task = T.putStrLn $ fromJust $ description =<< task
+
 exec :: MyOptions -> IO ()
-exec opts@CurrentMode = do
-  task <- getCurrent
-  print $ fromJust $ task
+exec opts@CurrentMode = getCurrent >>= printTask
 exec opts@StopMode = do
-  task <- getCurrent
-  case task of
-    Just t -> stopTask t >>= print
+  mtask <- getCurrent
+  case mtask of
+    Just task -> stopTask task >>= printTask
     Nothing -> error "No task is running."

@@ -4,6 +4,7 @@ module API
 ( Task
 , getCurrent
 , stopTask
+, description
 ) where
 
 import Data.Maybe
@@ -19,7 +20,6 @@ import GHC.Generics
 
 import Network.Wreq
 import Data.Aeson
-import Data.Aeson.Lens
 
 import Settings
 
