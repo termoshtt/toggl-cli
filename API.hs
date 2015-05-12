@@ -24,61 +24,57 @@ import Data.Aeson
 import Settings
 
 data Task = Task
-    { id          :: Maybe Int
-    , wid         :: Maybe Int
-    , pid         :: Maybe Int
-    , guid        :: Maybe T.Text
-    , duration    :: Maybe Int
-    , billable    :: Maybe Bool
-    , duronly     :: Maybe Bool
-    , start       :: Maybe T.Text
-    , stop        :: Maybe T.Text
-    , description :: Maybe T.Text
-    , at          :: Maybe T.Text
-    , created_with:: Maybe T.Text
-    , tags        :: Maybe T.Text
+    { id           :: Maybe Int
+    , wid          :: Maybe Int
+    , pid          :: Maybe Int
+    , guid         :: Maybe T.Text
+    , duration     :: Maybe Int
+    , billable     :: Maybe Bool
+    , duronly      :: Maybe Bool
+    , start        :: Maybe T.Text
+    , stop         :: Maybe T.Text
+    , description  :: Maybe T.Text
+    , at           :: Maybe T.Text
+    , created_with :: Maybe T.Text
+    , tags         :: Maybe T.Text
     } deriving (Show, Generic)
-
 instance FromJSON Task
 instance ToJSON Task where
   toJSON t = object $ catMaybes
-    [ ("id" .=) <$> API.id t
-    , ("wid" .=) <$> wid t
-    , ("pid" .=) <$> pid t
-    , ("guid" .=) <$> guid t
-    , ("duration" .=) <$> duration t
-    , ("start" .=) <$> start t
-    , ("stop" .=) <$> stop t
-    , ("description" .=) <$> description t
-    , ("at" .=) <$> API.at t
-    , ("tags" .=) <$> tags t
+    [ ("id" .=)           <$> API.id t
+    , ("wid" .=)          <$> wid t
+    , ("pid" .=)          <$> pid t
+    , ("guid" .=)         <$> guid t
+    , ("duration" .=)     <$> duration t
+    , ("start" .=)        <$> start t
+    , ("stop" .=)         <$> stop t
+    , ("description" .=)  <$> description t
+    , ("at" .=)           <$> API.at t
+    , ("tags" .=)         <$> tags t
     , ("created_with" .=) <$> created_with t
     ]
-
 emptyTask = Task
-  { API.id      = Nothing
-  , wid         = Nothing
-  , pid         = Nothing
-  , guid        = Nothing
-  , duration    = Nothing
-  , billable    = Nothing
-  , duronly     = Nothing
-  , start       = Nothing
-  , stop        = Nothing
-  , description = Nothing
-  , API.at      = Nothing
-  , tags        = Nothing
+  { API.id       = Nothing
+  , wid          = Nothing
+  , pid          = Nothing
+  , guid         = Nothing
+  , duration     = Nothing
+  , billable     = Nothing
+  , duronly      = Nothing
+  , start        = Nothing
+  , stop         = Nothing
+  , description  = Nothing
+  , API.at       = Nothing
+  , tags         = Nothing
   , created_with = Nothing
   }
 
 data Wrap1 = Wrap1
    { _data :: Task
    } deriving (Show, Generic)
-
 instance FromJSON Wrap1 where
   parseJSON (Object v) = Wrap1 <$> v .: "data"
   parseJSON _ = mzero
-
 parseResponse1 :: B.ByteString -> Maybe Task
 parseResponse1 str = _data <$> wrap where
   wrap = decode $ str :: Maybe Wrap1
@@ -86,7 +82,6 @@ parseResponse1 str = _data <$> wrap where
 data TimeEntry = TimeEntry
   { time_entry :: Task
   } deriving (Show, Generic)
-
 instance ToJSON TimeEntry
 
 toggl_url :: String
