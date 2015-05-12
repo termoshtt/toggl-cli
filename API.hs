@@ -6,6 +6,7 @@ module API
 , stopTask
 ) where
 
+import Data.Maybe
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC
@@ -66,18 +67,8 @@ getCurrent = do
   r <- getWith opts $ toggl_url ++ "time_entries/current"
   return $ parseResponse1 $ r ^. responseBody
 
-stopTask :: Int -> IO (Maybe Task)
-stopTask id = do
+stopTask :: Task -> IO (Maybe Task)
+stopTask task = do
   opts <- getOption
-  r <- putWith opts (toggl_url ++ "time_entries/" ++ (show id) ++ "/stop") B.empty
+  r <- putWith opts (toggl_url ++ "time_entries/" ++ (show $ fromJust $ API.id task) ++ "/stop") B.empty
   return $ parseResponse1 $ r ^. responseBody
-
-main = do
-  cur <- getCurrent
-  print cur
-  -- case (cur :: Maybe Task) of
-  --   Just task -> case (API.id task :: Maybe Int) of
-  --                  Just id -> stopTask id
-  --                  Nothing -> error "no ID"
-  --   Nothing -> error "no Task"
-
